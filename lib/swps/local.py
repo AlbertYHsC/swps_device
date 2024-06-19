@@ -73,9 +73,11 @@ class SmartWaterPumpSystem:
         add_record = ("INSERT INTO SensorRecords "
                       "(UserID, DeviceId, Temperature, Humidity, Pressure, RawValue0, RawValue1, RawValue2, "
                       "RawValue3, Voltage0, Voltage1, Voltage2, Voltage3, DetectTime, PumpStartTime) "
-                      "VALUES ((SELECT UserId, Id FROM EdgeDevices WHERE DeviceSN = %s), "
+                      "VALUES ((SELECT UserId FROM EdgeDevices WHERE DeviceSN = %s), "
+                      "(SELECT Id FROM EdgeDevices WHERE DeviceSN = %s), "
                       "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
         data_record = (
+            self.cfg['Default']['device_sn'],
             self.cfg['Default']['device_sn'],
             kwargs['Temperature'],
             kwargs['Humidity'],
