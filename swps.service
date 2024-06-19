@@ -1,0 +1,15 @@
+[Unit]
+Description=Smart water pump system service.
+After=mysql.service
+
+[Service]
+WorkingDirectory=/your_SWPS_path
+ExecStart=/bin/bash -c 'source /your_SWPS_path/start.sh'
+ExecStop=/bin/bash -c 'source /your_SWPS_path/close.sh'
+Type=simple
+KillMode=process
+Restart=on-failure
+RestartSec=42s
+
+[Install]
+WantedBy=multi-user.target
