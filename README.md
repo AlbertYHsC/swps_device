@@ -3,7 +3,7 @@ Automatic plant watering system to handle edge device requirements.
 
 It also can drive sensors and relay without edge device when installed on a Raspberry Pi.
 
-This middleware handles communication for the following programs:
+This middleware handles communication between the following programs:
 * [Smart Water Pump System - Web UI](https://github.com/AlbertYHsC/swps_web.git)
 * [Smart Water Pump System - Arduino](https://github.com/AlbertYHsC/swps_edge.git)
 
