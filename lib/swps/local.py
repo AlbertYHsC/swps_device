@@ -62,7 +62,7 @@ class SmartWaterPumpSystem:
         self.cnx = cnx
         self.csvPath = cfg['Local']['csv_path']
 
-        self.sensor = SensorAssembly(board.D22, self.logger)
+        self.sensor = SensorAssembly(self.logger)
         self.pump = WaterPumpAssembly(board.D23, self.logger)
 
     def _upload_data_mysql(self, **kwargs) -> None:
@@ -203,12 +203,10 @@ class SmartWaterPumpSystem:
 class SensorAssembly:
     def __init__(
             self,
-            spi_cs: Any,
             logger_parent: logging.Logger = None
     ) -> None:
         """Contain BME280 atmospheric sensor and ADS1115 ADC.
 
-        :param spi_cs: SPI chip select pin
         :param logger_parent: to get parent logger information
         """
         if logger_parent:
@@ -218,17 +216,6 @@ class SensorAssembly:
 
         else:
             self.logger = logging.getLogger(self.__class__.__name__)
-
-        try:
-            self.spi = board.SPI()
-            self.spi_cs = digitalio.DigitalInOut(spi_cs)
-            self.bme280 = adafruit_bme280.Adafruit_BME280_SPI(self.spi, self.spi_cs)
-            self.logger.info(f'Success to initialize device(bme280 {spi_cs})!')
-
-        except BaseException as err:
-            self.logger.warning(
-                f'Failed to initialize local device(bme280 {spi_cs})! Error: {err!r}'
-            )
 
         self.i2c = busio.I2C(board.SCL, board.SDA)
 
@@ -245,15 +232,26 @@ class SensorAssembly:
         self.logger.info(f'I2C addresses found: {[hex(i) for i in i2c_address]}')
 
         for i in i2c_address:
-            try:
-                self.ads = ads1115.ADS1115(address=i, i2c=self.i2c)
-                self.logger.info(f'Success to initialize device(ads1115 {hex(i)})!')
-                break
+            if 0x48 <= i <= 0x4B:
+                try:
+                    self.ads = ads1115.ADS1115(address=i, i2c=self.i2c)
+                    self.logger.info(f'Success to initialize device(ads1115 {hex(i)})!')
+                    break
 
-            except BaseException as err:
-                self.logger.warning(
-                    f'Failed to initialize local device(ads1115 {hex(i)})! Error: {err!r}'
-                )
+                except BaseException as err:
+                    self.logger.warning(
+                        f'Failed to initialize local device(ads1115 {hex(i)})! Error: {err!r}'
+                    )
+
+            elif 0x76 <= i <= 0x77:
+                try:
+                    self.bme280 = adafruit_bme280.Adafruit_BME280_I2C(self.i2c, i)
+                    self.logger.info(f'Success to initialize device(bme280 {hex(i)})!')
+
+                except BaseException as err:
+                    self.logger.warning(
+                        f'Failed to initialize local device(bme280 {hex(i)})! Error: {err!r}'
+                    )
 
     def detect_atmospheric_data(self) -> Tuple[float, float, float]:
         try:
